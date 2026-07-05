@@ -292,10 +292,20 @@
       }
 
       .record-usage {
+        display: grid;
+        justify-items: end;
+        gap: 2px;
         color: var(--text);
         font-size: 15px;
         font-weight: 700;
         white-space: nowrap;
+      }
+
+      .record-daily-usage {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.25;
       }
 
       .empty-records {
@@ -650,6 +660,20 @@
         return Number(usage).toFixed(1).replace(/\.0$/, '');
       }
 
+      function formatDailyUsage(dailyUsage) {
+        if (dailyUsage === null || dailyUsage === undefined || dailyUsage === '') {
+          return '';
+        }
+
+        const value = Number(dailyUsage);
+
+        if (!Number.isFinite(value)) {
+          return '';
+        }
+
+        return formatUsage(value) + ' kWh/day';
+      }
+
       function renderRecentRecords(records) {
         recordList.innerHTML = '';
 
@@ -665,13 +689,22 @@
           const item = document.createElement('li');
           const time = document.createElement('span');
           const usage = document.createElement('span');
+          const reading = document.createElement('span');
+          const dailyUsage = document.createElement('span');
 
           item.className = 'record-item';
           time.className = 'record-time';
           usage.className = 'record-usage';
+          reading.className = 'record-reading';
+          dailyUsage.className = 'record-daily-usage';
           time.textContent = record.timestamp;
-          usage.textContent = formatUsage(record.usage) + ' kWh';
+          reading.textContent = formatUsage(record.usage) + ' kWh';
+          dailyUsage.textContent = formatDailyUsage(record.dailyUsage);
 
+          usage.appendChild(reading);
+          if (dailyUsage.textContent) {
+            usage.appendChild(dailyUsage);
+          }
           item.appendChild(time);
           item.appendChild(usage);
           recordList.appendChild(item);

@@ -3,6 +3,7 @@ const MAX_USAGE_INCREASE_KWH = 1000;
 const RECENT_RECORD_COUNT = 5;
 const WEEKLY_CHART_WEEK_COUNT = 8;
 const MONTH_START_DAY = 8;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const SUCCESS_MESSAGE = '기록을 저장했습니다.';
 const UPDATE_SUCCESS_MESSAGE = '마지막 기록을 수정했습니다.';
 const NO_RECORD_MESSAGE = '수정할 기록이 없습니다.';
@@ -177,12 +178,32 @@ function getLatestRecordedUsageIndex_(recordedUsageValues) {
 }
 
 function getRecentRecords_(records, limit) {
-  return records.slice(-limit).reverse().map(function (record) {
+  const startIndex = Math.max(records.length - limit, 0);
+
+  return records.slice(startIndex).reverse().map(function (record, reverseIndex) {
+    const recordIndex = records.length - 1 - reverseIndex;
+    const previousRecord = recordIndex > 0 ? records[recordIndex - 1] : null;
+
     return {
       timestamp: formatTimestamp_(record.timestamp),
       usage: record.usage,
+      dailyUsage: getDailyUsageSincePreviousRecord_(record, previousRecord),
     };
   });
+}
+
+function getDailyUsageSincePreviousRecord_(record, previousRecord) {
+  if (!previousRecord) {
+    return null;
+  }
+
+  const elapsedMs = record.timestamp.getTime() - previousRecord.timestamp.getTime();
+
+  if (elapsedMs <= 0) {
+    return null;
+  }
+
+  return (record.usage - previousRecord.usage) / (elapsedMs / DAY_MS);
 }
 
 function getAllRecords_(sheet) {
@@ -368,7 +389,7 @@ function getWeeklyUsageChart_(records, weekCount) {
 
   const latestRecord = records[records.length - 1];
   const latestTime = latestRecord.timestamp;
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const weekMs = 7 * DAY_MS;
   const points = [];
 
   for (let index = weekCount - 1; index >= 0; index -= 1) {
