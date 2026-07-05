@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <base target="_top">
+    <style>
+      :root {
+        color-scheme: light;
+        --background: #f6f8fb;
+        --surface: #ffffff;
+        --text: #1d2433;
+        --muted: #687386;
+        --border: #d9e0ea;
+        --primary: #1267d8;
+        --primary-hover: #0f55b3;
+        --success: #137333;
+        --error: #b3261e;
+        --focus: rgba(18, 103, 216, 0.2);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--background);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      main {
+        width: min(100%, 720px);
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      .loading-view {
+        display: grid;
+        min-height: 100vh;
+        place-items: center;
+        padding: 24px;
+        color: var(--muted);
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .app-content[hidden],
+      .loading-view[hidden] {
+        display: none;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 28px;
+        box-shadow: 0 12px 28px rgba(29, 36, 51, 0.08);
+      }
+
+      h1 {
+        margin: 0 0 24px;
+        font-size: 28px;
+        line-height: 1.2;
+        letter-spacing: 0;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .input-row {
+        display: flex;
+        align-items: stretch;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--surface);
+      }
+
+      .input-row:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 4px var(--focus);
+      }
+
+      input {
+        min-width: 0;
+        flex: 1;
+        border: 0;
+        padding: 14px 16px;
+        color: var(--text);
+        font-size: 18px;
+        outline: 0;
+      }
+
+      .unit {
+        display: inline-flex;
+        align-items: center;
+        padding: 0 14px;
+        border-left: 1px solid var(--border);
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .increment-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .increment-button {
+        min-height: 42px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      .reset-button {
+        font-size: 13px;
+      }
+
+      .increment-button:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      #record-button {
+        width: 100%;
+        margin-top: 18px;
+        padding: 14px 18px;
+        background: var(--primary);
+        color: #ffffff;
+        font-size: 16px;
+      }
+
+      #record-button:hover:not(:disabled) {
+        background: var(--primary-hover);
+      }
+
+      #update-button {
+        width: 100%;
+        margin-top: 10px;
+        padding: 13px 18px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      #update-button:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+
+      button:focus-visible {
+        outline: 4px solid var(--focus);
+        outline-offset: 2px;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.68;
+      }
+
+      .message {
+        min-height: 22px;
+        margin-top: 16px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .message.success {
+        color: var(--success);
+      }
+
+      .message.error {
+        color: var(--error);
+      }
+
+      .recent-records {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+
+      .stats-section {
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+      }
+
+      .section-title {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 14px;
+        letter-spacing: 0;
+        line-height: 1.3;
+      }
+
+      .section-note {
+        font-weight: 700;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      .stat-label {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .stat-value {
+        display: block;
+        margin-top: 8px;
+        color: var(--text);
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .chart-box {
+        margin-top: 12px;
+        height: 260px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      .chart-box canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      .chart-title {
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        letter-spacing: 0;
+        line-height: 1.35;
+      }
+
+      .record-list {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .record-item {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 12px;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+
+      .record-time {
+        min-width: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .record-usage {
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .empty-records {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 720px) {
+        .loading-view {
+          font-size: 23px;
+        }
+
+        body {
+          background: var(--surface);
+        }
+
+        main {
+          width: 100%;
+          min-height: 100vh;
+          padding: 0;
+        }
+
+        .panel {
+          min-height: 100vh;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: 32px;
+          margin-bottom: 26px;
+        }
+
+        label {
+          font-size: 19px;
+          margin-bottom: 12px;
+        }
+
+        input {
+          padding: 18px 16px;
+          font-size: 30px;
+        }
+
+        .unit {
+          padding: 0 14px;
+          font-size: 20px;
+        }
+
+        .increment-row {
+          grid-template-columns: repeat(3, 1fr);
+          gap: 10px;
+          margin-top: 12px;
+        }
+
+        .increment-button {
+          min-height: 58px;
+          font-size: 21px;
+        }
+
+        .reset-button {
+          font-size: 18px;
+        }
+
+        #record-button {
+          margin-top: 20px;
+          padding: 19px 18px;
+          font-size: 21px;
+        }
+
+        #update-button {
+          margin-top: 12px;
+          padding: 18px;
+          font-size: 20px;
+        }
+
+        .message {
+          min-height: 28px;
+          font-size: 18px;
+        }
+
+        .stats-section,
+        .recent-records {
+          margin-top: 28px;
+          padding-top: 24px;
+        }
+
+        .section-title {
+          margin-bottom: 14px;
+          font-size: 19px;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stat-card {
+          padding: 16px;
+        }
+
+        .stat-label {
+          font-size: 17px;
+        }
+
+        .stat-value {
+          font-size: 34px;
+        }
+
+        .chart-title {
+          margin-top: 22px;
+          font-size: 18px;
+        }
+
+        .chart-box {
+          height: 340px;
+          padding: 8px;
+        }
+
+        .record-item {
+          grid-template-columns: 1fr;
+          gap: 6px;
+          padding: 15px;
+        }
+
+        .record-time {
+          font-size: 17px;
+        }
+
+        .record-usage {
+          font-size: 22px;
+        }
+
+        .empty-records {
+          font-size: 18px;
+        }
+
+        .reset-button {
+          grid-column: 1 / -1;
+        }
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="loading-view" class="loading-view" role="status" aria-live="polite">데이터 불러오는 중...</div>
+
+    <main id="app-content" class="app-content" hidden>
+      <section class="panel" aria-labelledby="page-title">
+        <h1 id="page-title">전기 사용량 기록</h1>
+
+        <form id="usage-form" novalidate>
+          <label for="usage-input">계량기 지침</label>
+          <div class="input-row">
+            <input
+              id="usage-input"
+              name="usage"
+              type="number"
+              inputmode="decimal"
+              step="any"
+              required
+              autocomplete="off"
+            >
+            <span class="unit">kWh</span>
+          </div>
+          <div class="increment-row" aria-label="계량기 지침 더하기">
+            <button class="increment-button" type="button" data-increment="10">+10</button>
+            <button class="increment-button" type="button" data-increment="1">+1</button>
+            <button class="increment-button" type="button" data-increment="0.1">+0.1</button>
+            <button id="reset-button" class="increment-button reset-button" type="button">마지막 기록으로 초기화</button>
+          </div>
+
+          <button id="record-button" type="submit">기록 추가</button>
+          <button id="update-button" type="button">마지막 기록 수정</button>
+          <div id="message" class="message" role="status" aria-live="polite"></div>
+        </form>
+
+        <section class="stats-section" aria-labelledby="stats-title">
+          <h2 id="stats-title" class="section-title">기록 통계 <span id="month-start-note" class="section-note"></span></h2>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span id="current-month-label" class="stat-label">이번 달 예상 사용량</span>
+              <span id="current-month-estimate" class="stat-value">-</span>
+            </div>
+            <div class="stat-card">
+              <span id="previous-month-label" class="stat-label">저번 달 사용량</span>
+              <span id="previous-month-usage" class="stat-value">-</span>
+            </div>
+          </div>
+          <h3 class="chart-title">최근 8주</h3>
+          <div class="chart-box">
+            <canvas id="weekly-usage-chart" aria-label="최근 8주"></canvas>
+          </div>
+        </section>
+
+        <section class="recent-records" aria-labelledby="recent-records-title">
+          <h2 id="recent-records-title" class="section-title">최근 기록</h2>
+          <ul id="record-list" class="record-list"></ul>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const form = document.getElementById('usage-form');
+      const usageInput = document.getElementById('usage-input');
+      const recordButton = document.getElementById('record-button');
+      const updateButton = document.getElementById('update-button');
+      const resetButton = document.getElementById('reset-button');
+      const incrementButtons = document.querySelectorAll('.increment-button[data-increment]');
+      const currentMonthLabel = document.getElementById('current-month-label');
+      const currentMonthEstimate = document.getElementById('current-month-estimate');
+      const previousMonthLabel = document.getElementById('previous-month-label');
+      const previousMonthUsage = document.getElementById('previous-month-usage');
+      const monthStartNote = document.getElementById('month-start-note');
+      const weeklyUsageChart = document.getElementById('weekly-usage-chart');
+      const recordList = document.getElementById('record-list');
+      const message = document.getElementById('message');
+      const loadingView = document.getElementById('loading-view');
+      const appContent = document.getElementById('app-content');
+      let chart = null;
+      let latestUsage = null;
+      let hasLoadedInitialData = false;
+
+      loadLatestUsage();
+
+      incrementButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          addToUsage(Number(button.dataset.increment));
+        });
+      });
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        submitUsage('record');
+      });
+
+      updateButton.addEventListener('click', function () {
+        submitUsage('update');
+      });
+
+      resetButton.addEventListener('click', function () {
+        resetToLatestUsage();
+      });
+
+      function submitUsage(action) {
+        if (!usageInput.checkValidity()) {
+          showMessage('올바른 전기 사용량 숫자를 입력해 주세요.', false);
+          usageInput.focus();
+          return;
+        }
+
+        const usage = formatUsage(usageInput.value);
+        const isConfirmed = confirm(
+          (action === 'update' ? '마지막 기록 수정' : '기록 추가') +
+          '를 진행할까요?\n\n사용량: ' +
+          usage + ' kWh'
+        );
+
+        if (!isConfirmed) {
+          showMessage('작업을 취소했습니다.', false);
+          usageInput.focus();
+          return;
+        }
+
+        setSavingState(true, action);
+        showMessage('', true);
+
+        const runner = google.script.run
+          .withSuccessHandler(function (response) {
+            const isSuccess = response && response.success === true;
+            showMessage(response && response.message ? response.message : '기록을 저장하지 못했습니다.', isSuccess);
+
+            if (isSuccess) {
+              usageInput.value = formatUsage(response.usage);
+              usageInput.focus();
+              loadLatestUsage();
+            }
+
+            setSavingState(false, action);
+          })
+          .withFailureHandler(function (error) {
+            showMessage('기록을 저장하지 못했습니다.', false);
+            setSavingState(false, action);
+          });
+
+        if (action === 'update') {
+          runner.updateLatestUsage(usage);
+          return;
+        }
+
+        runner.recordUsage(usage);
+      }
+
+      function loadLatestUsage() {
+        google.script.run
+          .withSuccessHandler(function (response) {
+            if (response && response.success === true && response.usage !== null) {
+              latestUsage = response.usage;
+              usageInput.value = formatUsage(response.usage);
+            } else {
+              latestUsage = null;
+            }
+
+            renderRecentRecords(response && response.records ? response.records : []);
+            renderStats(response && response.stats ? response.stats : null);
+            showAppContent();
+          })
+          .withFailureHandler(function (error) {
+            showMessage('최근 기록을 불러오지 못했습니다.', false);
+            showAppContent();
+          })
+          .getLatestUsage();
+      }
+
+      function showAppContent() {
+        if (hasLoadedInitialData) {
+          return;
+        }
+
+        hasLoadedInitialData = true;
+        loadingView.hidden = true;
+        appContent.hidden = false;
+      }
+
+      function addToUsage(increment) {
+        const currentUsage = Number(usageInput.value);
+        const baseUsage = Number.isFinite(currentUsage) ? currentUsage : 0;
+        usageInput.value = formatUsage(baseUsage + increment);
+        usageInput.focus();
+      }
+
+      function resetToLatestUsage() {
+        if (latestUsage === null) {
+          showMessage('초기화할 마지막 기록이 없습니다.', false);
+          usageInput.focus();
+          return;
+        }
+
+        usageInput.value = formatUsage(latestUsage);
+        showMessage('', true);
+        usageInput.focus();
+      }
+
+      function formatUsage(usage) {
+        if (usage === null || usage === undefined || usage === '') {
+          return '';
+        }
+
+        return Number(usage).toFixed(1).replace(/\.0$/, '');
+      }
+
+      function renderRecentRecords(records) {
+        recordList.innerHTML = '';
+
+        if (!records.length) {
+          const emptyItem = document.createElement('li');
+          emptyItem.className = 'empty-records';
+          emptyItem.textContent = '아직 기록이 없습니다.';
+          recordList.appendChild(emptyItem);
+          return;
+        }
+
+        records.forEach(function (record) {
+          const item = document.createElement('li');
+          const time = document.createElement('span');
+          const usage = document.createElement('span');
+
+          item.className = 'record-item';
+          time.className = 'record-time';
+          usage.className = 'record-usage';
+          time.textContent = record.timestamp;
+          usage.textContent = formatUsage(record.usage) + ' kWh';
+
+          item.appendChild(time);
+          item.appendChild(usage);
+          recordList.appendChild(item);
+        });
+      }
+
+      function renderStats(stats) {
+        if (!stats) {
+          renderMonthStartNote(null);
+          setStat(currentMonthLabel, currentMonthEstimate, '이번 달 예상 사용량', null);
+          setStat(previousMonthLabel, previousMonthUsage, '저번 달 사용량', null);
+          renderWeeklyUsageChart(null);
+          return;
+        }
+
+        renderMonthStartNote(stats.monthStartDay);
+        setStat(
+          currentMonthLabel,
+          currentMonthEstimate,
+          stats.currentMonthEstimate.monthLabel + ' 예상 사용량',
+          stats.currentMonthEstimate.value
+        );
+        setStat(
+          previousMonthLabel,
+          previousMonthUsage,
+          stats.previousMonthUsage.monthLabel + ' 사용량',
+          stats.previousMonthUsage.value
+        );
+        renderWeeklyUsageChart(stats.weeklyUsageChart);
+      }
+
+      function renderMonthStartNote(monthStartDay) {
+        monthStartNote.textContent = monthStartDay ? '(기준일: ' + monthStartDay + '일)' : '';
+      }
+
+      function setStat(labelElement, valueElement, label, value) {
+        labelElement.textContent = label;
+        valueElement.textContent = value === null || value === undefined
+          ? '계산 불가'
+          : formatUsage(value) + ' kWh';
+      }
+
+      function renderWeeklyUsageChart(chartData) {
+        const isCompactScreen = window.matchMedia('(max-width: 720px)').matches;
+        const tickFontSize = isCompactScreen ? 15 : 12;
+        const titleFontSize = isCompactScreen ? 17 : 12;
+        const points = chartData && chartData.points ? chartData.points : [];
+        const labels = points.map(function (point) {
+          return point.label;
+        });
+        const values = points.map(function (point) {
+          return Number(point.usage.toFixed(1));
+        });
+
+        if (chart) {
+          chart.destroy();
+        }
+
+        if (typeof Chart === 'undefined') {
+          return;
+        }
+
+        chart = new Chart(weeklyUsageChart, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: '7일 사용량 (kWh)',
+              data: values,
+              borderColor: '#1267d8',
+              backgroundColor: 'rgba(18, 103, 216, 0.72)',
+              borderWidth: 1,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: true,
+                labels: {
+                  font: {
+                    size: isCompactScreen ? 17 : 12,
+                  },
+                },
+              },
+              tooltip: {
+                titleFont: {
+                  size: isCompactScreen ? 17 : 12,
+                },
+                bodyFont: {
+                  size: isCompactScreen ? 17 : 12,
+                },
+                callbacks: {
+                  title: function (contexts) {
+                    if (!contexts.length) {
+                      return '';
+                    }
+
+                    const point = points[contexts[0].dataIndex];
+                    return point.periodLabel;
+                  },
+                  label: function (context) {
+                    return context.parsed.y + ' kWh';
+                  },
+                },
+              },
+            },
+            scales: {
+              x: {
+                ticks: {
+                  maxRotation: 45,
+                  minRotation: 0,
+                  font: {
+                    size: tickFontSize,
+                  },
+                },
+                title: {
+                  display: true,
+                  text: '7일 구간',
+                  font: {
+                    size: titleFontSize,
+                  },
+                },
+              },
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  font: {
+                    size: tickFontSize,
+                  },
+                },
+                title: {
+                  display: true,
+                  text: '사용량 (kWh)',
+                  font: {
+                    size: titleFontSize,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function setSavingState(isSaving, action) {
+        recordButton.disabled = isSaving;
+        updateButton.disabled = isSaving;
+        resetButton.disabled = isSaving;
+        recordButton.textContent = isSaving && action === 'record' ? '저장 중...' : '기록 추가';
+        updateButton.textContent = isSaving && action === 'update' ? '수정 중...' : '마지막 기록 수정';
+      }
+
+      function showMessage(text, isSuccess) {
+        message.textContent = text;
+        message.className = 'message' + (text ? (isSuccess ? ' success' : ' error') : '');
+      }
+    </script>
+  </body>
+</html>
