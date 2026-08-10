@@ -859,13 +859,9 @@
 
       function getUsagePointColor(usage) {
         const ratio = Math.max(0, Math.min(1, (usage - 10) / 20));
-        const blue = [18, 103, 216];
-        const red = [217, 48, 37];
-        const color = blue.map(function (channel, index) {
-          return Math.round(channel + (red[index] - channel) * ratio);
-        });
+        const hue = Math.round(240 * ratio);
 
-        return 'rgb(' + color.join(', ') + ')';
+        return 'hsl(' + hue + ', 75%, 50%)';
       }
 
       function setSavingState(isSaving, action) {
