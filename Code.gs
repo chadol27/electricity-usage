@@ -406,7 +406,6 @@ function getRecentUsageChart_(records, periodDays, periodCount) {
 
     points.push({
       label: getCompactChartDateLabel_(endTime),
-      periodLabel: getCompactChartDateLabel_(startTime) + '~' + getCompactChartDateLabel_(endTime),
       startTimestamp: formatTimestamp_(startTime),
       endTimestamp: formatTimestamp_(endTime),
       dailyUsage: (endUsage - startUsage) / periodDays,
