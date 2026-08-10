@@ -1,8 +1,8 @@
 const HEADER_ROW = ['Current Time', 'Recorded Usage'];
 const MAX_USAGE_INCREASE_KWH = 1000;
 const RECENT_RECORD_COUNT = 5;
-const CHART_PERIOD_DAYS = 3;
-const CHART_PERIOD_COUNT = 20;
+const CHART_PERIOD_DAYS = 1;
+const CHART_PERIOD_COUNT = 60;
 const MONTH_START_DAY = 8;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SUCCESS_MESSAGE = '기록을 저장했습니다.';
@@ -405,7 +405,7 @@ function getRecentUsageChart_(records, periodDays, periodCount) {
     }
 
     points.push({
-      label: String(index + 1),
+      label: getCompactChartDateLabel_(endTime),
       periodLabel: getCompactChartDateLabel_(startTime) + '~' + getCompactChartDateLabel_(endTime),
       startTimestamp: formatTimestamp_(startTime),
       endTimestamp: formatTimestamp_(endTime),

@@ -497,9 +497,9 @@
               <span id="previous-month-usage" class="stat-value">-</span>
             </div>
           </div>
-          <h3 class="chart-title">최근 60일 (3일 단위)</h3>
+          <h3 class="chart-title">최근 60일 일별 사용량</h3>
           <div class="chart-box">
-            <canvas id="recent-usage-chart" aria-label="최근 60일 3일 단위 사용량"></canvas>
+            <canvas id="recent-usage-chart" aria-label="최근 60일 일별 사용량 추세"></canvas>
           </div>
         </section>
 
@@ -768,15 +768,19 @@
         }
 
         chart = new Chart(recentUsageChart, {
-          type: 'bar',
+          type: 'line',
           data: {
             labels: labels,
             datasets: [{
               label: '일당 사용량 (kWh/day)',
               data: values,
               borderColor: '#1267d8',
-              backgroundColor: 'rgba(18, 103, 216, 0.72)',
-              borderWidth: 1,
+              backgroundColor: '#1267d8',
+              borderWidth: 2,
+              pointRadius: isCompactScreen ? 4 : 3,
+              pointHoverRadius: isCompactScreen ? 6 : 5,
+              tension: 0.35,
+              fill: false,
             }],
           },
           options: {
@@ -824,7 +828,7 @@
                 },
                 title: {
                   display: true,
-                  text: '3일 구간',
+                  text: '날짜',
                   font: {
                     size: titleFontSize,
                   },
