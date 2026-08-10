@@ -758,6 +758,7 @@
         const values = points.map(function (point) {
           return Number(point.dailyUsage.toFixed(1));
         });
+        const pointColors = values.map(getUsagePointColor);
 
         if (chart) {
           chart.destroy();
@@ -774,9 +775,11 @@
             datasets: [{
               label: '일당 사용량 (kWh/day)',
               data: values,
-              borderColor: '#1267d8',
-              backgroundColor: '#1267d8',
+              borderColor: '#687386',
+              backgroundColor: '#687386',
               borderWidth: 2,
+              pointBackgroundColor: pointColors,
+              pointBorderColor: pointColors,
               pointRadius: isCompactScreen ? 4 : 3,
               pointHoverRadius: isCompactScreen ? 6 : 5,
               tension: 0.35,
@@ -852,6 +855,17 @@
             },
           },
         });
+      }
+
+      function getUsagePointColor(usage) {
+        const ratio = Math.max(0, Math.min(1, (usage - 10) / 20));
+        const blue = [18, 103, 216];
+        const red = [217, 48, 37];
+        const color = blue.map(function (channel, index) {
+          return Math.round(channel + (red[index] - channel) * ratio);
+        });
+
+        return 'rgb(' + color.join(', ') + ')';
       }
 
       function setSavingState(isSaving, action) {
