@@ -859,7 +859,7 @@
 
       function getUsagePointColor(usage) {
         const ratio = Math.max(0, Math.min(1, (usage - 10) / 20));
-        const hue = Math.round(240 * ratio);
+        const hue = Math.round(240 * (1 - ratio));
 
         return 'hsl(' + hue + ', 75%, 50%)';
       }
