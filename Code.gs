@@ -1,7 +1,8 @@
 const HEADER_ROW = ['Current Time', 'Recorded Usage'];
 const MAX_USAGE_INCREASE_KWH = 1000;
 const RECENT_RECORD_COUNT = 5;
-const WEEKLY_CHART_WEEK_COUNT = 8;
+const CHART_PERIOD_DAYS = 3;
+const CHART_PERIOD_COUNT = 20;
 const MONTH_START_DAY = 8;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SUCCESS_MESSAGE = '기록을 저장했습니다.';
@@ -261,7 +262,7 @@ function getUsageStats_(records) {
     monthStartDay: MONTH_START_DAY,
     currentMonthEstimate: getCurrentMonthEstimate_(records, currentMonthStart, nextMonthStart),
     previousMonthUsage: getPreviousMonthUsage_(records, previousMonthStart, currentMonthStart),
-    weeklyUsageChart: getWeeklyUsageChart_(records, WEEKLY_CHART_WEEK_COUNT),
+    recentUsageChart: getRecentUsageChart_(records, CHART_PERIOD_DAYS, CHART_PERIOD_COUNT),
   };
 }
 
@@ -379,22 +380,23 @@ function getLastRecordInRange_(records, startTime, endTime) {
   return null;
 }
 
-function getWeeklyUsageChart_(records, weekCount) {
+function getRecentUsageChart_(records, periodDays, periodCount) {
   if (!records.length) {
     return {
-      weekCount: weekCount,
+      periodDays: periodDays,
+      periodCount: periodCount,
       points: [],
     };
   }
 
   const latestRecord = records[records.length - 1];
   const latestTime = latestRecord.timestamp;
-  const weekMs = 7 * DAY_MS;
+  const periodMs = periodDays * DAY_MS;
   const points = [];
 
-  for (let index = weekCount - 1; index >= 0; index -= 1) {
-    const startTime = new Date(latestTime.getTime() - (index + 1) * weekMs);
-    const endTime = new Date(latestTime.getTime() - index * weekMs);
+  for (let index = periodCount - 1; index >= 0; index -= 1) {
+    const startTime = new Date(latestTime.getTime() - (index + 1) * periodMs);
+    const endTime = new Date(latestTime.getTime() - index * periodMs);
     const startUsage = interpolateUsageAt_(records, startTime);
     const endUsage = interpolateUsageAt_(records, endTime);
 
@@ -407,12 +409,13 @@ function getWeeklyUsageChart_(records, weekCount) {
       periodLabel: getCompactChartDateLabel_(startTime) + '~' + getCompactChartDateLabel_(endTime),
       startTimestamp: formatTimestamp_(startTime),
       endTimestamp: formatTimestamp_(endTime),
-      usage: endUsage - startUsage,
+      dailyUsage: (endUsage - startUsage) / periodDays,
     });
   }
 
   return {
-    weekCount: weekCount,
+    periodDays: periodDays,
+    periodCount: periodCount,
     points: points,
   };
 }

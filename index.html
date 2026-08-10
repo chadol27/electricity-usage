@@ -497,9 +497,9 @@
               <span id="previous-month-usage" class="stat-value">-</span>
             </div>
           </div>
-          <h3 class="chart-title">최근 8주</h3>
+          <h3 class="chart-title">최근 60일 (3일 단위)</h3>
           <div class="chart-box">
-            <canvas id="weekly-usage-chart" aria-label="최근 8주"></canvas>
+            <canvas id="recent-usage-chart" aria-label="최근 60일 3일 단위 사용량"></canvas>
           </div>
         </section>
 
@@ -523,7 +523,7 @@
       const previousMonthLabel = document.getElementById('previous-month-label');
       const previousMonthUsage = document.getElementById('previous-month-usage');
       const monthStartNote = document.getElementById('month-start-note');
-      const weeklyUsageChart = document.getElementById('weekly-usage-chart');
+      const recentUsageChart = document.getElementById('recent-usage-chart');
       const recordList = document.getElementById('record-list');
       const message = document.getElementById('message');
       const loadingView = document.getElementById('loading-view');
@@ -716,7 +716,7 @@
           renderMonthStartNote(null);
           setStat(currentMonthLabel, currentMonthEstimate, '이번 달 예상 사용량', null);
           setStat(previousMonthLabel, previousMonthUsage, '저번 달 사용량', null);
-          renderWeeklyUsageChart(null);
+          renderRecentUsageChart(null);
           return;
         }
 
@@ -733,7 +733,7 @@
           stats.previousMonthUsage.monthLabel + ' 사용량',
           stats.previousMonthUsage.value
         );
-        renderWeeklyUsageChart(stats.weeklyUsageChart);
+        renderRecentUsageChart(stats.recentUsageChart);
       }
 
       function renderMonthStartNote(monthStartDay) {
@@ -747,7 +747,7 @@
           : formatUsage(value) + ' kWh';
       }
 
-      function renderWeeklyUsageChart(chartData) {
+      function renderRecentUsageChart(chartData) {
         const isCompactScreen = window.matchMedia('(max-width: 720px)').matches;
         const tickFontSize = isCompactScreen ? 15 : 12;
         const titleFontSize = isCompactScreen ? 17 : 12;
@@ -756,7 +756,7 @@
           return point.label;
         });
         const values = points.map(function (point) {
-          return Number(point.usage.toFixed(1));
+          return Number(point.dailyUsage.toFixed(1));
         });
 
         if (chart) {
@@ -767,12 +767,12 @@
           return;
         }
 
-        chart = new Chart(weeklyUsageChart, {
+        chart = new Chart(recentUsageChart, {
           type: 'bar',
           data: {
             labels: labels,
             datasets: [{
-              label: '7일 사용량 (kWh)',
+              label: '일당 사용량 (kWh/day)',
               data: values,
               borderColor: '#1267d8',
               backgroundColor: 'rgba(18, 103, 216, 0.72)',
@@ -808,7 +808,7 @@
                     return point.periodLabel;
                   },
                   label: function (context) {
-                    return context.parsed.y + ' kWh';
+                    return context.parsed.y + ' kWh/day';
                   },
                 },
               },
@@ -824,7 +824,7 @@
                 },
                 title: {
                   display: true,
-                  text: '7일 구간',
+                  text: '3일 구간',
                   font: {
                     size: titleFontSize,
                   },
@@ -839,7 +839,7 @@
                 },
                 title: {
                   display: true,
-                  text: '사용량 (kWh)',
+                  text: '일당 사용량 (kWh/day)',
                   font: {
                     size: titleFontSize,
                   },
