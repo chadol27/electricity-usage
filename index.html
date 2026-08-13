@@ -497,9 +497,9 @@
               <span id="previous-month-usage" class="stat-value">-</span>
             </div>
           </div>
-          <h3 class="chart-title">최근 60일 일별 사용량</h3>
+          <h3 class="chart-title">최근 60일 측정별 일평균 사용량</h3>
           <div class="chart-box">
-            <canvas id="recent-usage-chart" aria-label="최근 60일 일별 사용량 추세"></canvas>
+            <canvas id="recent-usage-chart" aria-label="최근 60일 측정별 일평균 사용량"></canvas>
           </div>
         </section>
 
@@ -751,14 +751,33 @@
         const isCompactScreen = window.matchMedia('(max-width: 720px)').matches;
         const tickFontSize = isCompactScreen ? 15 : 12;
         const titleFontSize = isCompactScreen ? 17 : 12;
+        const chartEndTime = Date.now();
+        const chartStartTime = chartEndTime - 60 * 24 * 60 * 60 * 1000;
         const points = chartData && chartData.points ? chartData.points : [];
-        const labels = points.map(function (point) {
-          return point.label;
-        });
         const values = points.map(function (point) {
-          return Number(point.dailyUsage.toFixed(1));
+          return {
+            x: point.timestampMs,
+            y: Number(point.dailyUsage.toFixed(1)),
+          };
         });
-        const pointColors = values.map(getUsagePointColor);
+        const pointColors = values.map(function (point) {
+          return getUsagePointColor(point.y);
+        });
+        const movingAverageWindowMs = 3 * 24 * 60 * 60 * 1000;
+        const movingAverageValues = values.map(function (point, index) {
+          const windowStart = point.x - movingAverageWindowMs;
+          const windowValues = values.slice(0, index + 1).filter(function (candidate) {
+            return candidate.x >= windowStart;
+          });
+          const average = windowValues.reduce(function (sum, candidate) {
+            return sum + candidate.y;
+          }, 0) / windowValues.length;
+
+          return {
+            x: point.x,
+            y: Number(average.toFixed(1)),
+          };
+        });
 
         if (chart) {
           chart.destroy();
@@ -769,21 +788,28 @@
         }
 
         chart = new Chart(recentUsageChart, {
-          type: 'line',
+          type: 'scatter',
           data: {
-            labels: labels,
             datasets: [{
-              label: '일당 사용량 (kWh/day)',
+              label: '측정별 일평균 사용량 (kWh/day)',
               data: values,
-              borderColor: '#687386',
-              backgroundColor: '#687386',
-              borderWidth: 2,
+              showLine: false,
               pointBackgroundColor: pointColors,
               pointBorderColor: pointColors,
               pointRadius: isCompactScreen ? 4 : 3,
               pointHoverRadius: isCompactScreen ? 6 : 5,
-              tension: 0.35,
-              fill: false,
+            }, {
+              type: 'line',
+              label: '3일 이동평균',
+              data: movingAverageValues,
+              borderColor: '#687386',
+              backgroundColor: 'rgba(104, 115, 134, 0.18)',
+              borderWidth: 2,
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              tension: 0.45,
+              cubicInterpolationMode: 'monotone',
+              fill: 'origin',
             }],
           },
           options: {
@@ -812,7 +838,7 @@
                     }
 
                     const point = points[contexts[0].dataIndex];
-                    return point.label;
+                    return point.timestamp;
                   },
                   label: function (context) {
                     return context.parsed.y + ' kWh/day';
@@ -822,16 +848,24 @@
             },
             scales: {
               x: {
+                type: 'linear',
+                min: chartStartTime,
+                max: chartEndTime,
                 ticks: {
                   maxRotation: 45,
                   minRotation: 0,
+                  callback: function (value) {
+                    const date = new Date(value);
+                    return String(date.getMonth() + 1).padStart(2, '0') +
+                      String(date.getDate()).padStart(2, '0');
+                  },
                   font: {
                     size: tickFontSize,
                   },
                 },
                 title: {
                   display: true,
-                  text: '날짜',
+                  text: '측정 시간',
                   font: {
                     size: titleFontSize,
                   },

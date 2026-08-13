@@ -390,30 +390,28 @@ function getRecentUsageChart_(records, periodDays, periodCount) {
   }
 
   const latestRecord = records[records.length - 1];
-  const latestTime = latestRecord.timestamp;
-  const chartEndTime = new Date(
-    latestTime.getFullYear(),
-    latestTime.getMonth(),
-    latestTime.getDate()
-  );
-  const periodMs = periodDays * DAY_MS;
+  const chartStartMs = latestRecord.timestamp.getTime() - periodDays * periodCount * DAY_MS;
   const points = [];
 
-  for (let index = periodCount - 1; index >= 0; index -= 1) {
-    const startTime = new Date(chartEndTime.getTime() - (index + 1) * periodMs);
-    const endTime = new Date(chartEndTime.getTime() - index * periodMs);
-    const startUsage = interpolateUsageAt_(records, startTime);
-    const endUsage = interpolateUsageAt_(records, endTime);
+  for (let index = 1; index < records.length; index += 1) {
+    const previousRecord = records[index - 1];
+    const record = records[index];
+    const recordMs = record.timestamp.getTime();
 
-    if (startUsage === null || endUsage === null) {
+    if (recordMs < chartStartMs) {
+      continue;
+    }
+
+    const elapsedMs = recordMs - previousRecord.timestamp.getTime();
+
+    if (elapsedMs <= 0) {
       continue;
     }
 
     points.push({
-      label: getCompactChartDateLabel_(startTime),
-      startTimestamp: formatTimestamp_(startTime),
-      endTimestamp: formatTimestamp_(endTime),
-      dailyUsage: (endUsage - startUsage) / periodDays,
+      timestampMs: recordMs,
+      timestamp: formatTimestamp_(record.timestamp),
+      dailyUsage: (record.usage - previousRecord.usage) / (elapsedMs / DAY_MS),
     });
   }
 
